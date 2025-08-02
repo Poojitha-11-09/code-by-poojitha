@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Credit Card Fraud Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+
+    <div class="page-container">
+        <h2>Upload Credit Card Transactions</h2>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p class="flash-message">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+
+        <form class="upload-form" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <button type="submit" class="upload-btn">Analyze</button>
+        </form>
+        
+        <a href="{{ url_for('home') }}"><button class="upload-btn" style="background: #4CAF50;">Back to Home</button></a>
+    </div>
+
+</body>
+</html>

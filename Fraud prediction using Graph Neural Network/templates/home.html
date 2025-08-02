@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">Fraud Detection</div>
+        <div class="nav-links">
+            <a href="/logout" class="btn logout-btn">Logout</a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <h2>Welcome to Fraud Detection</h2>
+        <p>Select the type of fraud detection:</p>
+
+        <div class="button-container">
+            <a href="/credit_card_fraud"><button class="btn fraud-btn">Credit Card Fraud</button></a>
+            <a href="/bitcoin_fraud"><button class="btn fraud-btn">Bitcoin Fraud</button></a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100vw;
+                 height: 100vh;
+                 background-color: #000000;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+    <div style="position:absolute; top:10px; left:10px; background-color:#111; color:white; 
+                padding:10px; border-radius:10px; font-size:14px; z-index:1000;">
+        <b>Legend:</b><br>
+        🔵 Non-Fraudulent Transaction<br>
+        🔴 Fraudulent Transaction<br>
+        🟠 Unusual Feature Node<br>
+        ⚪️ Normal Feature Node<br>
+        🧩 Edge Color = Transactional Deviation<br>
+        <svg height='10' width='80'><line x1='0' y1='5' x2='80' y2='5' style='stroke:#cccccc;stroke-width:2' /></svg> (Gray) All Non-Fraud Edges<br>
+        <svg height='10' width='80'><line x1='0' y1='5' x2='80' y2='5' style='stroke:#ff3333;stroke-width:2' /></svg> (Red) Fraud Edge to Unusual Feature<br>
+    </div>
+    
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "gray", "font": {"color": "white"}, "id": "Time", "label": "Time", "shape": "dot", "size": 15, "title": "Feature: Time"}, {"color": "#3498DB", "font": {"color": "white"}, "id": "Tx 1", "label": "Tx 1", "shape": "dot", "size": 25, "title": "Tx 1\u003cbr\u003eStatus: Non-Fraud\u003cbr\u003eInference: Non-Fraud"}, {"color": "#3498DB", "font": {"color": "white"}, "id": "Tx 2", "label": "Tx 2", "shape": "dot", "size": 25, "title": "Tx 2\u003cbr\u003eStatus: Non-Fraud\u003cbr\u003eInference: Non-Fraud"}, {"color": "#3498DB", "font": {"color": "white"}, "id": "Tx 4", "label": "Tx 4", "shape": "dot", "size": 25, "title": "Tx 4\u003cbr\u003eStatus: Non-Fraud\u003cbr\u003eInference: Non-Fraud"}, {"color": "orange", "font": {"color": "white"}, "id": "feat1", "label": "feat1", "shape": "dot", "size": 15, "title": "Feature: feat1"}, {"color": "#FF5733", "font": {"color": "white"}, "id": "Tx 0", "label": "Tx 0", "shape": "dot", "size": 25, "title": "Tx 0\u003cbr\u003eStatus: Fraud\u003cbr\u003eInference: Fraud"}, {"color": "#FF5733", "font": {"color": "white"}, "id": "Tx 3", "label": "Tx 3", "shape": "dot", "size": 25, "title": "Tx 3\u003cbr\u003eStatus: Fraud\u003cbr\u003eInference: Fraud"}, {"color": "orange", "font": {"color": "white"}, "id": "feat2", "label": "feat2", "shape": "dot", "size": 15, "title": "Feature: feat2"}, {"color": "orange", "font": {"color": "white"}, "id": "feat3", "label": "feat3", "shape": "dot", "size": 15, "title": "Feature: feat3"}, {"color": "gray", "font": {"color": "white"}, "id": "feat4", "label": "feat4", "shape": "dot", "size": 15, "title": "Feature: feat4"}, {"color": "gray", "font": {"color": "white"}, "id": "feat5", "label": "feat5", "shape": "dot", "size": 15, "title": "Feature: feat5"}, {"color": "gray", "font": {"color": "white"}, "id": "feat6", "label": "feat6", "shape": "dot", "size": 15, "title": "Feature: feat6"}, {"color": "orange", "font": {"color": "white"}, "id": "feat7", "label": "feat7", "shape": "dot", "size": 15, "title": "Feature: feat7"}, {"color": "orange", "font": {"color": "white"}, "id": "feat8", "label": "feat8", "shape": "dot", "size": 15, "title": "Feature: feat8"}, {"color": "gray", "font": {"color": "white"}, "id": "feat9", "label": "feat9", "shape": "dot", "size": 15, "title": "Feature: feat9"}, {"color": "orange", "font": {"color": "white"}, "id": "feat10", "label": "feat10", "shape": "dot", "size": 15, "title": "Feature: feat10"}, {"color": "orange", "font": {"color": "white"}, "id": "feat11", "label": "feat11", "shape": "dot", "size": 15, "title": "Feature: feat11"}, {"color": "orange", "font": {"color": "white"}, "id": "feat12", "label": "feat12", "shape": "dot", "size": 15, "title": "Feature: feat12"}, {"color": "gray", "font": {"color": "white"}, "id": "feat13", "label": "feat13", "shape": "dot", "size": 15, "title": "Feature: feat13"}, {"color": "orange", "font": {"color": "white"}, "id": "feat14", "label": "feat14", "shape": "dot", "size": 15, "title": "Feature: feat14"}, {"color": "gray", "font": {"color": "white"}, "id": "feat15", "label": "feat15", "shape": "dot", "size": 15, "title": "Feature: feat15"}, {"color": "orange", "font": {"color": "white"}, "id": "feat16", "label": "feat16", "shape": "dot", "size": 15, "title": "Feature: feat16"}, {"color": "gray", "font": {"color": "white"}, "id": "feat17", "label": "feat17", "shape": "dot", "size": 15, "title": "Feature: feat17"}, {"color": "gray", "font": {"color": "white"}, "id": "feat18", "label": "feat18", "shape": "dot", "size": 15, "title": "Feature: feat18"}, {"color": "gray", "font": {"color": "white"}, "id": "feat19", "label": "feat19", "shape": "dot", "size": 15, "title": "Feature: feat19"}, {"color": "orange", "font": {"color": "white"}, "id": "feat20", "label": "feat20", "shape": "dot", "size": 15, "title": "Feature: feat20"}, {"color": "orange", "font": {"color": "white"}, "id": "feat21", "label": "feat21", "shape": "dot", "size": 15, "title": "Feature: feat21"}, {"color": "gray", "font": {"color": "white"}, "id": "feat22", "label": "feat22", "shape": "dot", "size": 15, "title": "Feature: feat22"}, {"color": "orange", "font": {"color": "white"}, "id": "feat23", "label": "feat23", "shape": "dot", "size": 15, "title": "Feature: feat23"}, {"color": "gray", "font": {"color": "white"}, "id": "feat24", "label": "feat24", "shape": "dot", "size": 15, "title": "Feature: feat24"}, {"color": "gray", "font": {"color": "white"}, "id": "feat25", "label": "feat25", "shape": "dot", "size": 15, "title": "Feature: feat25"}, {"color": "gray", "font": {"color": "white"}, "id": "feat26", "label": "feat26", "shape": "dot", "size": 15, "title": "Feature: feat26"}, {"color": "orange", "font": {"color": "white"}, "id": "feat27", "label": "feat27", "shape": "dot", "size": 15, "title": "Feature: feat27"}, {"color": "gray", "font": {"color": "white"}, "id": "feat28", "label": "feat28", "shape": "dot", "size": 15, "title": "Feature: feat28"}]);
+                  edges = new vis.DataSet([{"color": "#cccccc", "from": "Time", "to": "Tx 1", "width": 2}, {"color": "#cccccc", "from": "Time", "to": "Tx 2", "width": 2}, {"color": "#cccccc", "from": "Time", "to": "Tx 4", "width": 2}, {"color": "#ff3333", "from": "feat1", "to": "Tx 0", "width": 2}, {"color": "#ff3333", "from": "feat1", "to": "Tx 3", "width": 2}, {"color": "#ff3333", "from": "feat2", "to": "Tx 0", "width": 2}, {"color": "#ff3333", "from": "feat2", "to": "Tx 3", "width": 2}, {"color": "#ff3333", "from": "feat3", "to": "Tx 3", "width": 2}, {"color": "#cccccc", "from": "feat4", "to": "Tx 1", "width": 2}, {"color": "#cccccc", "from": "feat4", "to": "Tx 2", "width": 2}, {"color": "#cccccc", "from": "feat4", "to": "Tx 4", "width": 2}, {"color": "#cccccc", "from": "feat5", "to": "Tx 2", "width": 2}, {"color": "#cccccc", "from": "feat5", "to": "Tx 4", "width": 2}, {"color": "#cccccc", "from": "feat6", "to": "Tx 1", "width": 2}, {"color": "#cccccc", "from": "feat6", "to": "Tx 2", "width": 2}, {"color": "#cccccc", "from": "feat6", "to": "Tx 4", "width": 2}, {"color": "#ff3333", "from": "feat7", "to": "Tx 0", "width": 2}, {"color": "#ff3333", "from": "feat7", "to": "Tx 3", "width": 2}, {"color": "#ff3333", "from": "feat8", "to": "Tx 0", "width": 2}, {"color": "#ff3333", "from": "feat8", "to": "Tx 3", "width": 2}, {"color": "#cccccc", "from": "feat9", "to": "Tx 1", "width": 2}, {"color": "#cccccc", "from": "feat9", "to": "Tx 4", "width": 2}, {"color": "#ff3333", "from": "feat10", "to": "Tx 0", "width": 2}, {"color": "#ff3333", "from": "feat10", "to": "Tx 3", "width": 2}, {"color": "#ff3333", "from": "feat11", "to": "Tx 0", "width": 2}, {"color": "#ff3333", "from": "feat11", "to": "Tx 3", "width": 2}, {"color": "#ff3333", "from": "feat12", "to": "Tx 0", "width": 2}, {"color": "#ff3333", "from": "feat12", "to": "Tx 3", "width": 2}, {"color": "#cccccc", "from": "feat13", "to": "Tx 1", "width": 2}, {"color": "#cccccc", "from": "feat13", "to": "Tx 2", "width": 2}, {"color": "#cccccc", "from": "feat13", "to": "Tx 4", "width": 2}, {"color": "#ff3333", "from": "feat14", "to": "Tx 0", "width": 2}, {"color": "#ff3333", "from": "feat14", "to": "Tx 3", "width": 2}, {"color": "#cccccc", "from": "feat15", "to": "Tx 1", "width": 2}, {"color": "#cccccc", "from": "feat15", "to": "Tx 2", "width": 2}, {"color": "#cccccc", "from": "feat15", "to": "Tx 4", "width": 2}, {"color": "#ff3333", "from": "feat16", "to": "Tx 3", "width": 2}, {"color": "#cccccc", "from": "feat17", "to": "Tx 1", "width": 2}, {"color": "#cccccc", "from": "feat17", "to": "Tx 2", "width": 2}, {"color": "#cccccc", "from": "feat17", "to": "Tx 4", "width": 2}, {"color": "#cccccc", "from": "feat18", "to": "Tx 2", "width": 2}, {"color": "#cccccc", "from": "feat18", "to": "Tx 4", "width": 2}, {"color": "#cccccc", "from": "feat19", "to": "Tx 1", "width": 2}, {"color": "#cccccc", "from": "feat19", "to": "Tx 2", "width": 2}, {"color": "#cccccc", "from": "feat19", "to": "Tx 4", "width": 2}, {"color": "#ff3333", "from": "feat20", "to": "Tx 0", "width": 2}, {"color": "#ff3333", "from": "feat20", "to": "Tx 3", "width": 2}, {"color": "#ff3333", "from": "feat21", "to": "Tx 0", "width": 2}, {"color": "#ff3333", "from": "feat21", "to": "Tx 3", "width": 2}, {"color": "#cccccc", "from": "feat22", "to": "Tx 1", "width": 2}, {"color": "#cccccc", "from": "feat22", "to": "Tx 2", "width": 2}, {"color": "#cccccc", "from": "feat22", "to": "Tx 4", "width": 2}, {"color": "#ff3333", "from": "feat23", "to": "Tx 0", "width": 2}, {"color": "#ff3333", "from": "feat23", "to": "Tx 3", "width": 2}, {"color": "#cccccc", "from": "feat24", "to": "Tx 1", "width": 2}, {"color": "#cccccc", "from": "feat24", "to": "Tx 2", "width": 2}, {"color": "#cccccc", "from": "feat24", "to": "Tx 4", "width": 2}, {"color": "#cccccc", "from": "feat25", "to": "Tx 1", "width": 2}, {"color": "#cccccc", "from": "feat25", "to": "Tx 2", "width": 2}, {"color": "#cccccc", "from": "feat25", "to": "Tx 4", "width": 2}, {"color": "#cccccc", "from": "feat26", "to": "Tx 1", "width": 2}, {"color": "#cccccc", "from": "feat26", "to": "Tx 2", "width": 2}, {"color": "#cccccc", "from": "feat26", "to": "Tx 4", "width": 2}, {"color": "#ff3333", "from": "feat27", "to": "Tx 0", "width": 2}, {"color": "#ff3333", "from": "feat27", "to": "Tx 3", "width": 2}, {"color": "#cccccc", "from": "feat28", "to": "Tx 1", "width": 2}, {"color": "#cccccc", "from": "feat28", "to": "Tx 2", "width": 2}, {"color": "#cccccc", "from": "feat28", "to": "Tx 4", "width": 2}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "forceAtlas2Based": {
+            "avoidOverlap": 0,
+            "centralGravity": 0.005,
+            "damping": 0.4,
+            "gravitationalConstant": -50,
+            "springConstant": 0.1,
+            "springLength": 200
+        },
+        "solver": "forceAtlas2Based",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

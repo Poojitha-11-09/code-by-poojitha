@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Bitcoin Fraud Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+
+    <div class="page-container">
+        <h2>Upload Bitcoin Transactions</h2>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p class="flash-message">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+
+        <!-- File Upload Form -->
+        <form class="upload-form" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <button type="submit" class="upload-btn">Analyze</button>
+        </form>
+
+        <!-- Results Table (Only shown after analysis) -->
+        {% if table %}
+            <h3>Analysis Results</h3>
+            <table border="1">
+                <tr>
+                    <th>Time ID</th>
+                    <th>Tx ID</th>
+                    <th>Prediction</th>
+                </tr>
+                {% for row in table %}
+                <tr>
+                    <td>{{ row["Time ID"] }}</td>
+                    <td>{{ row["Tx ID"] }}</td>
+                    <td>{{ row["Prediction"] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+        {% if graph_path %}
+        <br>
+        <a href="{{ url_for('visualize_bitcoin') }}" target="_blank">
+            <button class="btn btn-primary">Visualize Graph</button>
+        </a>
+    {% endif %}
+    <br>
+
+        <!-- Back to Home Button -->
+        <a href="{{ url_for('home') }}">
+            <button class="upload-btn" style="background: #4CAF50;">Back to Home</button>
+        </a>
+    </div>
+
+</body>
+</html>
